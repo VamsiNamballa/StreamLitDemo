@@ -360,3 +360,16 @@ group by c.customer_name
 SELECT ctkt.cname, ctkt.booked_tickets,
 RANK() OVER (ORDER BY ctkt.booked_tickets)
 FROM custtickets ctkt;
+
+-- Q30: Find the top customer from each city based on total tickets booked --
+
+WITH tkts as(
+SELECT c.customer_name as cname, SUM(b.tickets_booked) total_tkts
+FROM customer c
+join bookings b 
+on c.customer_id=b.customer_id
+GROUP BY c.customer_name
+)
+SELECT cname, total_tkts, 
+RANK() OVER (ORDER BY total_tkts)
+FROM tkts;
