@@ -1,0 +1,393 @@
+DROP TABLE IF EXISTS bookings;
+DROP TABLE IF EXISTS shows;
+DROP TABLE IF EXISTS movies;
+DROP TABLE IF EXISTS customer;
+
+CREATE TABLE customer (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100),
+    city VARCHAR(50),
+    age INT
+);
+
+CREATE TABLE movies (
+    movie_id INT PRIMARY KEY,
+    movie_name VARCHAR(100),
+    genre VARCHAR(50),
+    language VARCHAR(50),
+    duration_minutes INT
+);
+
+CREATE TABLE shows (
+    show_id INT PRIMARY KEY,
+    movie_id INT,
+    theatre_name VARCHAR(100),
+    show_date DATE,
+    ticket_price NUMERIC(10,2),
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
+);
+
+CREATE TABLE bookings (
+    booking_id INT PRIMARY KEY,
+    customer_id INT,
+    show_id INT,
+    tickets_booked INT,
+    booking_date DATE,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    FOREIGN KEY (show_id) REFERENCES shows(show_id)
+);
+
+INSERT INTO customer VALUES
+(1, 'Ravi', 'Hyderabad', 28),
+(2, 'Priya', 'Bangalore', 25),
+(3, 'Anil', 'Chennai', 32),
+(4, 'Sneha', 'Hyderabad', 24),
+(5, 'John', 'Mumbai', 35),
+(6, 'Meera', 'Bangalore', 29),
+(7, 'Kiran', 'Chennai', 22),
+(8, 'Divya', 'Mumbai', 27);
+
+INSERT INTO movies VALUES
+(101, 'RRR', 'Action', 'Telugu', 180),
+(102, 'Dangal', 'Drama', 'Hindi', 160),
+(103, 'Inception', 'Sci-Fi', 'English', 148),
+(104, 'Baahubali', 'Action', 'Telugu', 170),
+(105, 'Interstellar', 'Sci-Fi', 'English', 169);
+
+INSERT INTO shows VALUES
+(1001, 101, 'PVR Hyderabad', '2026-06-01', 250),
+(1002, 102, 'INOX Bangalore', '2026-06-02', 220),
+(1003, 103, 'PVR Chennai', '2026-06-03', 300),
+(1004, 104, 'AMB Hyderabad', '2026-06-04', 280),
+(1005, 105, 'INOX Mumbai', '2026-06-05', 350),
+(1006, 101, 'PVR Bangalore', '2026-06-06', 260),
+(1007, 103, 'AMB Hyderabad', '2026-06-07', 320);
+
+INSERT INTO bookings VALUES
+(501, 1, 1001, 2, '2026-05-28'),
+(502, 2, 1002, 3, '2026-05-29'),
+(503, 3, 1003, 1, '2026-05-30'),
+(504, 4, 1004, 4, '2026-05-31'),
+(505, 5, 1005, 2, '2026-06-01'),
+(506, 6, 1006, 5, '2026-06-02'),
+(507, 7, 1003, 2, '2026-06-03'),
+(508, 8, 1005, 1, '2026-06-04'),
+(509, 1, 1007, 3, '2026-06-05'),
+(510, 2, 1001, 2, '2026-06-06'),
+(511, 4, 1006, 1, '2026-06-07'),
+(512, 6, 1004, 2, '2026-06-08');
+
+SELECT * FROM customer;
+SELECT * FROM movies;
+SELECT * FROM shows;
+SELECT * FROM bookings;
+
+-- Basic Cusomer --
+
+-- Q1) Show All Customer --
+select * from customer;
+
+-- Q2) Show only Customer City and name --
+select c1.city, c1.customer_name
+FROM Customer c1;
+
+-- Q3. Show all customers from Hyderabad.--
+SELECT *
+FROM customer c1
+WHERE c1.city='Hyderabad';
+
+-- Q4. Show all customers whose age is greater than 28. --
+SELECT *
+FROM customer c1
+WHERE c1.age>28;
+
+-- Q5. Show all Telugu movies. --
+SELECT * 
+FROM movies m
+WHERE m.language='Telugu';
+
+-- Q6. Show all movies with duration greater than 160 minutes. --
+SELECT * 
+FROM movies m
+WHERE m.duration_minutes>160;
+
+-- Q7. Show all shows where ticket price is greater than 280. --
+SELECT * 
+FROM shows s
+WHERE s.ticket_price>280;
+
+-- Q8. Show all customers from Bangalore or Chennai. --
+SELECT * 
+FROM customer c
+where c.city='Hyderabad' OR
+c.city='Bangalore';
+
+-- Q9. Show movies sorted by duration from highest to lowest. --
+select m.movie_name, m.duration_minutes
+from movies m
+ORDER by m.duration_minutes DESC;
+
+-- Q10. Show bookings made after 2026-06-01. --
+SELECT *
+FROM bookings b
+WHERE b.booking_date>'2026-06-01'
+ORDER BY b.booking_date;
+
+-- Q11. Show booking details with customer name. --
+SELECT b.booking_id, c.customer_name, b.show_id, b.tickets_booked
+FROM bookings b
+left join customer c
+on c.customer_id=b.customer_id;
+
+-- Q12. Show show details with movie name. --
+SELECT s.show_id, m.movie_name, s.theatre_name, s.show_date, s.ticket_price
+FROM shows s
+JOIN movies m
+on s.movie_id=m.movie_id;
+
+-- Q13. Show full booking details. --
+-- booking_id, customer_name, movie_name, theatre_name, tickets_booked, ticket_price
+SELECT b.booking_id, c.customer_name, m.movie_name, s.theatre_name, b.tickets_booked, s.ticket_price
+FROM movies m 
+JOIN shows s
+on m.movie_id=s.movie_id
+JOIN bookings b 
+on b.show_id=s.show_id
+JOIN customer c
+on c.customer_id=b.customer_id;
+
+-- Q14. Show total amount for each booking. --
+-- booking_id, customer_name, movie_name, tickets_booked, ticket_price, total_amount --
+-- Formula= tickets_booked * ticket_price --
+SELECT b.booking_id, c.customer_name, m.movie_name, b.tickets_booked, s.ticket_price,b.booking_id, s.show_id, b.tickets_booked * s.ticket_price AS Total_amount
+FROM bookings b
+join shows s
+on b.show_id=s.show_id
+JOIN movies m 
+on m.movie_id=s.movie_id
+JOIN customer c
+on c.customer_id=b.customer_id;
+
+-- Q16. Find total tickets booked per movie. --
+-- movie_name, total_tickets --
+SELECT m.movie_name, SUM(b.tickets_booked) as total_tickets
+FROM movies m
+join shows s
+on s.movie_id=m.movie_id
+join bookings b
+on s.show_id=b.show_id
+GROUP BY m.movie_name;
+
+-- Q17. Find total revenue per movie. --
+-- SUM(tickets_booked * ticket_price) --
+SELECT m.movie_name, SUM(b.tickets_booked * s.ticket_price) as total_revenue
+FROM movies m
+join shows s
+on s.movie_id=m.movie_id
+join bookings b
+on b.show_id=s.show_id
+GROUP BY m.movie_name;
+
+SELECT m.movie_name, s.show_id, b.tickets_booked * s.ticket_price AS REVENUE,
+SUM(b.tickets_booked * s.ticket_price) OVER(PARTITION BY m.movie_name) as revenue
+FROM movies m
+join shows s
+on s.movie_id=m.movie_id
+join bookings b
+on b.show_id=s.show_id;
+
+-- Q18. Find total bookings per city. --
+SELECT c.city,
+s.show_id, 
+COUNT(b.show_id) OVER ( PARTITION BY c.city) as total_bookings
+FROM customer c
+join bookings b
+on c.customer_id=b.customer_id
+join shows s
+on s.show_id=b.show_id;
+
+-- Q19. Find total tickets booked by each customer. --
+SELECT c.customer_name, 
+COUNT(b.booking_id) OVER(PARTITION BY c.customer_name) as total_tickets
+FROM customer c
+join bookings b
+on b.customer_id=c.customer_id;
+
+-- Q20. Find average ticket price per movie. --
+SELECT m.movie_name, avg(s.ticket_price) as average_ticket_price
+FROM movies m
+join shows s
+on s.movie_id=m.movie_id
+group by m.movie_name;
+
+SELECT m.movie_name, s.ticket_price,
+count(s.show_id) over(partition by m.movie_name) as total_tickets,
+avg(s.ticket_price) over(partition by m.movie_name) as average_ticket_price
+FROM movies m
+join shows s
+on s.movie_id=m.movie_id;
+
+-- Q21. Find movies where total tickets booked are greater than 4. --
+select m.movie_name,
+count(b.booking_id)
+from movies m
+join shows s 
+on m.movie_id=s.movie_id
+join bookings b
+on b.show_id=s.show_id
+GROUP BY m.movie_name;
+
+select m.movie_name, b.booking_id,
+count(b.booking_id) over(partition by m.movie_name)
+from movies m
+join shows s 
+on m.movie_id=s.movie_id
+join bookings b
+on b.show_id=s.show_id;
+
+-- Q22. Find customers who booked more than 3 tickets in total. --
+select m.movie_name,
+count(b.booking_id)
+from movies m
+join shows s 
+on m.movie_id=s.movie_id
+join bookings b
+on b.show_id=s.show_id
+GROUP BY m.movie_name
+HAVING count(b.booking_id)>3;
+
+
+-- Q23. Find cities with more than 2 bookings. --
+SELECT c.city,
+COUNT(b.booking_id) as total_bookings
+FROM shows s
+JOIN bookings b
+on s.show_id=b.show_id
+join customer c
+on c.customer_id=b.customer_id
+group by c.city
+having COUNT(b.booking_id)>2;
+
+-- Q24. Using a CTE, first calculate total revenue per movie, 
+-- then show only movies with revenue greater than 1000.
+
+WITH movie_revenue as(
+	SELECT m.movie_name, SUM(b.tickets_booked * s.ticket_price) as total_revenue
+FROM movies m
+join shows s
+on s.movie_id=m.movie_id
+join bookings b
+on b.show_id=s.show_id
+GROUP BY m.movie_name
+)
+SELECT *
+FROM movie_revenue mr
+where mr.total_revenue>1000;
+
+-- Q25. Using a CTE, calculate total tickets booked per customer, 
+-- then show customers with total tickets greater than 3.
+
+WITH tickets_per_customer as(
+SELECT c.customer_name, COUNT(b.booking_id) as counter
+FROM bookings b
+join customer c
+on b.customer_id=c.customer_id
+group by c.customer_name
+)
+SELECT * 
+from tickets_per_customer tpc
+where tpc.counter>3;
+
+-- Q26. Using a CTE, calculate total amount for every booking, 
+-- then filter bookings where total amount is greater than 700.
+
+WITH CTE AS(
+SELECT b.booking_id, b.tickets_booked * s.ticket_price as total_amount
+FROM bookings b
+join shows s
+on b.show_id=s.show_id
+)
+SELECT * 
+FROM CTE 
+WHERE CTE.total_amount>700;
+
+-- Q27. Rank movies by total revenue. --
+
+SELECT m.movie_name, 
+SUM(s.ticket_price*b.tickets_booked) as total_revenue,
+RANK() OVER(ORDER BY SUM(s.ticket_price*b.tickets_booked) DESC)
+FROM movies m
+join shows s
+on m.movie_id=s.movie_id
+join bookings b
+on b.show_id=s.show_id
+GROUP BY m.movie_name;
+
+-- Q28. Find the highest revenue movie. --
+SELECT m.movie_name, 
+SUM(s.ticket_price*b.tickets_booked) as total_revenue,
+RANK() OVER(ORDER BY SUM(s.ticket_price*b.tickets_booked) DESC) as rev_rank
+FROM movies m
+join shows s
+on m.movie_id=s.movie_id
+join bookings b
+on b.show_id=s.show_id
+GROUP BY m.movie_name
+order by rev_rank;
+
+-- Q28. Find the highest revenue movie.
+SELECT m.movie_name, 
+SUM(s.ticket_price*b.tickets_booked) as total_revenue,
+RANK() OVER(ORDER BY SUM(s.ticket_price*b.tickets_booked) DESC) as rev_rank
+FROM movies m
+join shows s
+on m.movie_id=s.movie_id
+join bookings b
+on b.show_id=s.show_id
+GROUP BY m.movie_name
+order by rev_rank
+LIMIT 1;
+
+-- Q29. Rank customers by total tickets booked. --
+
+WITH custtickets as(
+SELECT c.customer_name as cname, SUM(b.tickets_booked) booked_tickets
+FROM customer c
+join bookings b
+on c.customer_id=b.customer_id
+group by c.customer_name
+)
+SELECT ctkt.cname, ctkt.booked_tickets,
+RANK() OVER (ORDER BY ctkt.booked_tickets)
+FROM custtickets ctkt;
+
+-- Q30: Find the top customer from each city based on total tickets booked --
+
+WITH tkts as(
+SELECT c.customer_name as cname, SUM(b.tickets_booked) total_tkts
+FROM customer c
+join bookings b 
+on c.customer_id=b.customer_id
+GROUP BY c.customer_name
+)
+SELECT cname, total_tkts, 
+RANK() OVER (ORDER BY total_tkts)
+FROM tkts;
+
+-- Additional Practice: Order by c_id --
+
+WITH top_cust as(
+WITH tkts as(
+SELECT c.customer_id as cid,c.customer_name as cname, SUM(b.tickets_booked) total_tkts
+FROM customer c
+join bookings b 
+on c.customer_id=b.customer_id
+GROUP BY c.customer_id, c.customer_name
+)
+SELECT cid,cname, total_tkts, 
+RANK() OVER (ORDER BY total_tkts)
+FROM tkts
+)
+SELECT *
+FROM top_cust
+order by cid;
