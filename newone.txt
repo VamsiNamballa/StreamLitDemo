@@ -373,3 +373,21 @@ GROUP BY c.customer_name
 SELECT cname, total_tkts, 
 RANK() OVER (ORDER BY total_tkts)
 FROM tkts;
+
+-- Additional Practice: Order by c_id --
+
+WITH top_cust as(
+WITH tkts as(
+SELECT c.customer_id as cid,c.customer_name as cname, SUM(b.tickets_booked) total_tkts
+FROM customer c
+join bookings b 
+on c.customer_id=b.customer_id
+GROUP BY c.customer_id, c.customer_name
+)
+SELECT cid,cname, total_tkts, 
+RANK() OVER (ORDER BY total_tkts)
+FROM tkts
+)
+SELECT *
+FROM top_cust
+order by cid;
